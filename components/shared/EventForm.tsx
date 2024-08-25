@@ -15,7 +15,6 @@ import { useState } from "react"
 import Image from "next/image"
 import DatePicker from "react-datepicker";
 import { useUploadThing } from '@/lib/uploadthing'
-
 import "react-datepicker/dist/react-datepicker.css";
 import { Checkbox } from "../ui/checkbox"
 import { useRouter } from "next/navigation"
