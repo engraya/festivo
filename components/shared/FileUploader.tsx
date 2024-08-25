@@ -33,7 +33,7 @@ export function FileUploader({ imageUrl, onFieldChange, setFiles }: FileUploader
 
       {imageUrl ? (
         <div className="flex h-full w-full flex-1 justify-center ">
-          <img
+          <Image
             src={imageUrl}
             alt="image"
             width={250}
