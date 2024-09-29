@@ -17,7 +17,9 @@ export type UpdateUserParams = {
 
 // ====== EVENT PARAMS
 export type CreateEventParams = {
-  userId: string
+  organizerId: string
+  organizerFirstName : string | null | undefined
+  organizerLastName : string | null | undefined
   event: {
     title: string
     description: string
@@ -34,7 +36,9 @@ export type CreateEventParams = {
 }
 
 export type UpdateEventParams = {
-  userId: string
+  organizerId: string
+  organizerFirstName : string | null | undefined
+  organizerLastName :  string | null | undefined
   event: {
     _id: string
     title: string
@@ -64,7 +68,7 @@ export type GetAllEventsParams = {
 }
 
 export type GetEventsByUserParams = {
-  userId: string
+  organizerId: string
   limit?: number
   page: number
 }
@@ -87,11 +91,7 @@ export type Event = {
   startDateTime: Date
   endDateTime: Date
   url: string
-  organizer: {
-    _id: string
-    firstName: string
-    lastName: string
-  }
+  organizer: string // Organizer is just the userId (string)
   category: {
     _id: string
     name: string
@@ -126,7 +126,7 @@ export type GetOrdersByEventParams = {
 }
 
 export type GetOrdersByUserParams = {
-  userId: string | null
+  organizerId: string | null
   limit?: number
   page: string | number | null
 }

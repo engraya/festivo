@@ -4,7 +4,6 @@ import { revalidatePath } from 'next/cache'
 
 import { connectToDatabase } from '@/lib/database'
 import Event from '@/lib/database/models/event.model'
-import User from '@/lib/database/models/user.model'
 import Category from '@/lib/database/models/category.model'
 import { handleError } from '@/lib/utils'
 
@@ -16,26 +15,26 @@ import {
   GetEventsByUserParams,
   GetRelatedEventsByCategoryParams,
 } from '@/types'
-
+import { currentUser } from '@clerk/nextjs/server'
 const getCategoryByName = async (name: string) => {
   return Category.findOne({ name: { $regex: name, $options: 'i' } })
 }
 
 const populateEvent = (query: any) => {
   return query
-    .populate({ path: 'organizer', model: User, select: '_id firstName lastName' })
     .populate({ path: 'category', model: Category, select: '_id name' })
 }
 
 // CREATE
-export async function createEvent({ userId, event, path }: CreateEventParams) {
+export async function createEvent({ organizerId, organizerFirstName, organizerLastName, event, path }: CreateEventParams) {
   try {
     await connectToDatabase()
 
-    const organizer = await User.findById(userId)
-    if (!organizer) throw new Error('Organizer not found')
+    const user = await currentUser()
+    const organizerId = user?.id
+    if (!organizerId) throw new Error('Organizer not logged in')
 
-    const newEvent = await Event.create({ ...event, category: event.categoryId, organizer: userId })
+    const newEvent = await Event.create({ ...event, category: event.categoryId, organizerId: organizerId, organizerFirstName : organizerFirstName, organizerLastName : organizerLastName })
     revalidatePath(path)
 
     return JSON.parse(JSON.stringify(newEvent))
@@ -60,18 +59,19 @@ export async function getEventById(eventId: string) {
 }
 
 // UPDATE
-export async function updateEvent({ userId, event, path }: UpdateEventParams) {
+export async function updateEvent({ organizerId, event, path }: UpdateEventParams) {
   try {
     await connectToDatabase()
 
     const eventToUpdate = await Event.findById(event._id)
-    if (!eventToUpdate || eventToUpdate.organizer.toHexString() !== userId) {
+    if (!eventToUpdate || eventToUpdate.organizerId.toString() !== organizerId) {
       throw new Error('Unauthorized or event not found')
     }
 
     const updatedEvent = await Event.findByIdAndUpdate(
       event._id,
       { ...event, category: event.categoryId },
+      
       { new: true }
     )
     revalidatePath(path)
@@ -124,26 +124,39 @@ export async function getAllEvents({ query, limit = 6, page, category }: GetAllE
 }
 
 // GET EVENTS BY ORGANIZER
-export async function getEventsByUser({ userId, limit = 6, page }: GetEventsByUserParams) {
+export async function getEventsByUser({ organizerId, limit = 6, page }: GetEventsByUserParams) {
   try {
-    await connectToDatabase()
+    await connectToDatabase(); // Ensures the database is connected.
+    
 
-    const conditions = { organizer: userId }
-    const skipAmount = (page - 1) * limit
+    // Define the query conditions to filter events by the organizer's ID.
+    const conditions = { organizerId: organizerId };
+    
+    // Pagination: Determine how many documents to skip based on the page and limit.
+    const skipAmount = (page - 1) * limit;
 
+    // Query the database for events created by the user, sorted by creation date.
     const eventsQuery = Event.find(conditions)
-      .sort({ createdAt: 'desc' })
-      .skip(skipAmount)
-      .limit(limit)
+      .sort({ createdAt: 'desc' }) // Sort the events in descending order of creation date.
+      .skip(skipAmount)            // Skip events based on pagination.
+      .limit(limit);               // Limit the number of results returned per page.
 
-    const events = await populateEvent(eventsQuery)
-    const eventsCount = await Event.countDocuments(conditions)
+    // Populate the event with any associated data (like relationships).
+    const events = await populateEvent(eventsQuery);
+    
+    // Get the total number of events for the user to calculate total pages.
+    const eventsCount = await Event.countDocuments(conditions);
 
-    return { data: JSON.parse(JSON.stringify(events)), totalPages: Math.ceil(eventsCount / limit) }
+    // Return the events and the total number of pages (based on the limit).
+    return { 
+      data: JSON.parse(JSON.stringify(events)), 
+      totalPages: Math.ceil(eventsCount / limit) 
+    };
   } catch (error) {
-    handleError(error)
+    handleError(error); // Handle any errors that occur.
   }
 }
+
 
 // GET RELATED EVENTS: EVENTS WITH SAME CATEGORY
 export async function getRelatedEventsByCategory({
