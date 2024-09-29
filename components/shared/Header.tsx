@@ -4,7 +4,7 @@ import Link from "next/link"
 import { Button } from "../ui/button"
 import NavItems from "./NavItems"
 import MobileNav from "./MobileNav"
-
+import { ThemeToggler } from "./ThemeToggler"
 const Header = () => {
   return (
     <header className="w-full border-b">
@@ -40,8 +40,11 @@ const Header = () => {
               </Link>
             </Button>
           </SignedOut>
+    
         </div>
+        <ThemeToggler/>
       </div>
+   
     </header>
   )
 }
