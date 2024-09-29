@@ -13,7 +13,7 @@ const UpdateEvent = async ({ params: { id } }: UpdateEventProps) => {
   // const userId = sessionClaims?.userId as string;
 
   const user = await currentUser();
-  const userId = user?.id as string
+  const organizerId = user?.id as string
   const event = await getEventById(id)
 
   return (
@@ -23,11 +23,12 @@ const UpdateEvent = async ({ params: { id } }: UpdateEventProps) => {
       </section>
 
       <div className="wrapper my-8">
+        {/* @ts-ignore */}
         <EventForm 
           type="Update" 
           event={event} 
           eventId={event._id} 
-          userId={userId} 
+          organizerId={organizerId} 
         />
       </div>
     </>
