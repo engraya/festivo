@@ -117,12 +117,12 @@ export async function getOrdersByEvent({ searchString, eventId }: GetOrdersByEve
 }
 
 // GET ORDERS BY USER
-export async function getOrdersByUser({ userId, limit = 3, page }: GetOrdersByUserParams) {
+export async function getOrdersByUser({ organizerId, limit = 3, page }: GetOrdersByUserParams) {
   try {
     await connectToDatabase();
 
     const skipAmount = (Number(page) - 1) * limit;
-    const conditions = { buyer: userId };
+    const conditions = { buyer: organizerId };
 
     const orders = await Order.find(conditions)
       .sort({ createdAt: 'desc' })

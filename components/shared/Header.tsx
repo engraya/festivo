@@ -9,14 +9,17 @@ const Header = () => {
   return (
     <header className="w-full border-b">
       <div className="wrapper flex items-center justify-between">
-        <Link href="/" className="w-36">
-          {/* <Image 
-            src="/assets/images/logo.svg" width={128} height={38}
-            alt="Evently logo" 
-          /> */}
+        <Link href="/">
+        <div className="flex space-x-1 justify-center items-center">
+        <Image 
+            src="/assets/logo.svg" width={50} height={50}
+            alt="Festivo logo" 
+          />
           <h1 className="text-3xl font-extrabold text-gray-800">
             Festivo
           </h1>
+        </div>
+
         </Link>
 
         <SignedIn>
